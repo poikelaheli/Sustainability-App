@@ -3,22 +3,22 @@ package com.example.sustainabilityapp
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.sustainabilityapp.databinding.ActivityMainBinding
 import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
 
-class MainActivity : ComponentActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
+
+    lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.login_registration)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         /*setContent {
             SustainabilityAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -56,9 +56,16 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
                 registrationForm.visibility = View.GONE
                 navigationButtons.visibility = View.INVISIBLE
             }
+            R.id.loginFormButton -> {
+                val fragmentManager = supportFragmentManager
+                val fragmentTransaction = fragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
+                fragmentTransaction.commit()
+            }
         }
     }
 }
+
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
