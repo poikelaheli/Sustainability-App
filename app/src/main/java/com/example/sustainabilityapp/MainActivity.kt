@@ -2,7 +2,6 @@ package com.example.sustainabilityapp
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
@@ -20,20 +19,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        /*setContent {
-            SustainabilityAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }*/
     }
 
     fun onClick(v: View?) {
-
         when (v?.id) {
             R.id.openLogin -> {
                 updateLayoutVisibility("openLogin")
@@ -77,14 +65,12 @@ class MainActivity : AppCompatActivity() {
                 registrationForm.visibility = View.GONE
                 navigationButtons.visibility = View.VISIBLE
             }
-
             "openRegistration" -> {
                 loginButtons.visibility = View.GONE
                 loginForm.visibility = View.GONE
                 registrationForm.visibility = View.VISIBLE
                 navigationButtons.visibility = View.VISIBLE
             }
-
             "returnButton" -> {
                 loginButtons.visibility = View.VISIBLE
                 loginForm.visibility = View.GONE
@@ -94,7 +80,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {

@@ -34,8 +34,8 @@
             <androidx.fragment.app.FragmentContainerView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/contentFragmentContainer"/>
-                <!--android:name="com.example.sustainabilityapp.LoginRegistrationFragment"-->
+                android:id="@+id/contentFragmentContainer"
+                android:name="com.example.sustainabilityapp.DevicesFragment"/>
         </RelativeLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
