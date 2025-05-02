@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sustainability App</string>
-    <string name="home_button">Home</string>
+    <string name="logout_button">Logout</string>
     <string name="devices_button">Devices</string>
     <string name="profile_button">Profile</string>
     <string name="settings_button">Settings</string>
