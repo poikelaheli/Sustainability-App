@@ -1,23 +1,28 @@
 package com.example.sustainabilityapp
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Bundle
 import android.net.wifi.WifiManager
+import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
 import com.example.sustainabilityapp.databinding.ActivityMainBinding
 import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
 import java.net.InetAddress
@@ -26,25 +31,28 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
     private val intentFilter = IntentFilter()
-    private lateinit var channel: WifiP2pManager.Channel
-    private lateinit var manager: WifiP2pManager
+    lateinit var channel: WifiP2pManager.Channel
+    lateinit var manager: WifiP2pManager
 
     private var port = 2020
     private var mServiceName = ""
-    private var mServiceType = "_nsdchat._tcp"
+    private var mServiceType = "_nsdchat._tcp."
     private lateinit var nsdManager: NsdManager
     private lateinit var mService: NsdServiceInfo
 
-    private var TAG = "sustApp"
+    var TAG = "sustApp"
+    var isWifiP2pEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        registerService(port)
-        nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+        getDeviceList(true, 1000)
+        //registerService(port)
+        //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     }
 
+    @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     fun onClick(v: View?) {
         when (v?.id) {
             R.id.openLogin -> {
@@ -61,12 +69,14 @@ class MainActivity : AppCompatActivity() {
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
                 fragmentTransaction.commit()
+                initiatePeerDiscovery(manager)
             }
             R.id.regFormButton -> {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
                 fragmentTransaction.commit()
+                initiatePeerDiscovery(manager)
             }
             R.id.logoutButton -> {
                 val fragmentManager = supportFragmentManager
@@ -103,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    /*fun getDeviceList(onlyReachable: Boolean, reachableTimeout: Int) {
+    fun getDeviceList(onlyReachable: Boolean, reachableTimeout: Int) {
         // Indicates a change in the Wi-Fi Direct status.
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
 
@@ -118,9 +128,80 @@ class MainActivity : AppCompatActivity() {
 
         manager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         channel = manager.initialize(this, mainLooper, null)
-    }*/
+    }
 
-    fun registerService(port: Int) {
+    @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
+    fun initiatePeerDiscovery (manager: WifiP2pManager) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.NEARBY_WIFI_DEVICES
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            Log.d(TAG, "Insufficient permissions")
+            Log.d(TAG, ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ).toString()
+            )
+            Log.d(TAG, ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.NEARBY_WIFI_DEVICES
+            ).toString()
+            )
+            //return
+        }
+        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+
+            override fun onSuccess() {
+                // Code for when the discovery initiation is successful goes here.
+                // No services have actually been discovered yet, so this method
+                // can often be left blank. Code for peer discovery goes in the
+                // onReceive method, detailed below.
+            }
+
+            override fun onFailure(reasonCode: Int) {
+                // Code for when the discovery initiation fails goes here.
+                // Alert the user that something went wrong.
+                Log.d(TAG, "Discovery failure, code: $reasonCode")
+            }
+        })
+    }
+
+    private val peers = mutableListOf<WifiP2pDevice>()
+
+    val peerListListener = WifiP2pManager.PeerListListener { peerList ->
+        val refreshedPeers = peerList.deviceList
+        Log.d(TAG, refreshedPeers.toString())
+        if (refreshedPeers != peers) {
+            peers.clear()
+            peers.addAll(refreshedPeers)
+
+            // If an AdapterView is backed by this data, notify it
+            // of the change. For instance, if you have a ListView of
+            // available peers, trigger an update.
+            //(listAdapter as WiFiPeerListAdapter).notifyDataSetChanged()
+
+            // Perform any other updates needed based on the new list of
+            // peers connected to the Wi-Fi P2P network.
+        }
+
+        if (peers.isEmpty()) {
+            Log.d(TAG, "No devices found")
+            return@PeerListListener
+        }
+    }
+
+    /*fun registerService(port: Int) {
         // Create the NsdServiceInfo object, and populate it.
         val serviceInfo = NsdServiceInfo().apply {
             // The name is subject to change based on conflicts
@@ -217,7 +298,7 @@ class MainActivity : AppCompatActivity() {
             val port: Int = serviceInfo.port
             val host: InetAddress = serviceInfo.host
         }
-    }
+    }*/
 }
 
 
