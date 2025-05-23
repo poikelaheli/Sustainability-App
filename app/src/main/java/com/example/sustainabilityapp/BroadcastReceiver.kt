@@ -10,22 +10,34 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.IntentCompat
 
-class BroadcastReceiver {
-    val activity =  MainActivity()
-    val manager = activity.manager
-    val channel = activity.channel
+class AppBroadcastReceiver : android.content.BroadcastReceiver() {
+    lateinit var activity : MainActivity
+    lateinit var manager: WifiP2pManager
+    lateinit var channel: WifiP2pManager.Channel
 
-    fun onReceive(context: Context, intent: Intent) {
+    fun setVariables (newActivity: MainActivity, newManager: WifiP2pManager, newChannel: WifiP2pManager.Channel) {
+        activity = newActivity
+        manager = newManager
+        channel = newChannel
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        Log.d(activity.TAG, "HERE")
+        Log.d(activity.TAG, (intent.action == WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION).toString())
+        Log.d(activity.TAG, WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
         when(intent.action) {
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> ({
+                Log.d(activity.TAG, "STATE")
                 // Determine if Wi-Fi Direct mode is enabled or not, alert
                 // the Activity.
                 val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
+                Log.d(activity.TAG, state.toString())
                 activity.isWifiP2pEnabled = state == WifiP2pManager.WIFI_P2P_STATE_ENABLED
             })
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> (@androidx.annotation.RequiresPermission(
                 allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.NEARBY_WIFI_DEVICES]
             ) {
+                Log.d(activity.TAG, "PEER")
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -55,12 +67,14 @@ class BroadcastReceiver {
 
             })
             WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> ({
+                Log.d(activity.TAG, "CONNECTION")
 
                 // Connection state changed! We should probably do something about
                 // that.
 
             })
             WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
+                Log.d(activity.TAG, "DEVICE")
                 (activity.supportFragmentManager.findFragmentById(R.id.contentFragmentContainer) as DevicesFragment)
                     .apply {
                         updateThisDevice(

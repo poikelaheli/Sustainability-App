@@ -12,10 +12,13 @@ import android.net.nsd.NsdServiceInfo
 import android.os.Bundle
 import android.net.wifi.WifiManager
 import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
@@ -33,6 +36,26 @@ class MainActivity : AppCompatActivity() {
     private val intentFilter = IntentFilter()
     lateinit var channel: WifiP2pManager.Channel
     lateinit var manager: WifiP2pManager
+    lateinit var receiver: AppBroadcastReceiver
+    lateinit var peerListListener: WifiP2pManager.PeerListListener
+    var actionListener = object : WifiP2pManager.ActionListener {
+
+        override fun onSuccess() {
+            // Code for when the discovery initiation is successful goes here.
+            // No services have actually been discovered yet, so this method
+            // can often be left blank. Code for peer discovery goes in the
+            // onReceive method, detailed below.
+            Log.d(TAG, "$channel")
+            Log.d(TAG, "$peerListListener")
+        }
+
+        override fun onFailure(reasonCode: Int) {
+            // Code for when the discovery initiation fails goes here.
+            // Alert the user that something went wrong.
+            Log.d(TAG, "Discovery failure, code: $reasonCode")
+        }
+    }
+
 
     private var port = 2020
     private var mServiceName = ""
@@ -43,6 +66,8 @@ class MainActivity : AppCompatActivity() {
     var TAG = "sustApp"
     var isWifiP2pEnabled = false
 
+    private val peers = mutableListOf<WifiP2pDevice>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -52,7 +77,22 @@ class MainActivity : AppCompatActivity() {
         //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     }
 
+    /** register the BroadcastReceiver with the intent values to be matched  */
+    public override fun onResume() {
+        Log.d(TAG, "RESUME")
+        super.onResume()
+        receiver = AppBroadcastReceiver()
+        receiver.setVariables(this, manager, channel)
+        registerReceiver(receiver, intentFilter)
+    }
+
+    public override fun onPause() {
+        super.onPause()
+        unregisterReceiver(receiver)
+    }
+
     @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun onClick(v: View?) {
         when (v?.id) {
             R.id.openLogin -> {
@@ -128,13 +168,37 @@ class MainActivity : AppCompatActivity() {
 
         manager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
         channel = manager.initialize(this, mainLooper, null)
+        onResume()
+        peerListListener = object : WifiP2pManager.PeerListListener {
+            override fun onPeersAvailable(peerList: WifiP2pDeviceList?) {
+                Log.d(TAG, "$peerList")
+                val refreshedPeers = peerList?.deviceList
+                Log.d(TAG, refreshedPeers.toString())
+                if (refreshedPeers != peers) {
+                    peers.clear()
+                    peers.addAll(refreshedPeers?.toMutableList() ?: peers)
+
+                    // If an AdapterView is backed by this data, notify it
+                    // of the change. For instance, if you have a ListView of
+                    // available peers, trigger an update.
+                    //(listAdapter as WiFiPeerListAdapter).notifyDataSetChanged()
+
+                    // Perform any other updates needed based on the new list of
+                    // peers connected to the Wi-Fi P2P network.
+                }
+                if (peers.isEmpty()) {
+                    Log.d(TAG, "No devices found")
+                }
+            }
+        }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     fun initiatePeerDiscovery (manager: WifiP2pManager) {
         if (ActivityCompat.checkSelfPermission(
                 this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.NEARBY_WIFI_DEVICES
             ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.NEARBY_WIFI_DEVICES
@@ -160,46 +224,9 @@ class MainActivity : AppCompatActivity() {
             )
             //return
         }
-        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
-
-            override fun onSuccess() {
-                // Code for when the discovery initiation is successful goes here.
-                // No services have actually been discovered yet, so this method
-                // can often be left blank. Code for peer discovery goes in the
-                // onReceive method, detailed below.
-            }
-
-            override fun onFailure(reasonCode: Int) {
-                // Code for when the discovery initiation fails goes here.
-                // Alert the user that something went wrong.
-                Log.d(TAG, "Discovery failure, code: $reasonCode")
-            }
-        })
+        manager.discoverPeers(channel, actionListener)
     }
 
-    private val peers = mutableListOf<WifiP2pDevice>()
-
-    val peerListListener = WifiP2pManager.PeerListListener { peerList ->
-        val refreshedPeers = peerList.deviceList
-        Log.d(TAG, refreshedPeers.toString())
-        if (refreshedPeers != peers) {
-            peers.clear()
-            peers.addAll(refreshedPeers)
-
-            // If an AdapterView is backed by this data, notify it
-            // of the change. For instance, if you have a ListView of
-            // available peers, trigger an update.
-            //(listAdapter as WiFiPeerListAdapter).notifyDataSetChanged()
-
-            // Perform any other updates needed based on the new list of
-            // peers connected to the Wi-Fi P2P network.
-        }
-
-        if (peers.isEmpty()) {
-            Log.d(TAG, "No devices found")
-            return@PeerListListener
-        }
-    }
 
     /*fun registerService(port: Int) {
         // Create the NsdServiceInfo object, and populate it.
