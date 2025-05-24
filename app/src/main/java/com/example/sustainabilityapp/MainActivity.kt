@@ -17,7 +17,9 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Build
 import android.util.Log
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
+import android.widget.ListView
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +33,7 @@ import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
 import java.net.InetAddress
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var listView : ListView
 
     lateinit var binding: ActivityMainBinding
     private val intentFilter = IntentFilter()
@@ -56,13 +59,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    private var port = 2020
-    private var mServiceName = ""
-    private var mServiceType = "_nsdchat._tcp."
-    private lateinit var nsdManager: NsdManager
-    private lateinit var mService: NsdServiceInfo
-
     var TAG = "sustApp"
     var isWifiP2pEnabled = false
 
@@ -79,10 +75,10 @@ class MainActivity : AppCompatActivity() {
 
     /** register the BroadcastReceiver with the intent values to be matched  */
     public override fun onResume() {
-        Log.d(TAG, "RESUME")
         super.onResume()
         receiver = AppBroadcastReceiver()
         receiver.setVariables(this, manager, channel)
+        Log.d(TAG, intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION).toString())
         registerReceiver(receiver, intentFilter)
     }
 
@@ -224,9 +220,50 @@ class MainActivity : AppCompatActivity() {
             )
             //return
         }
-        manager.discoverPeers(channel, actionListener)
+        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+
+            override fun onSuccess() {
+                // Code for when the discovery initiation is successful goes here.
+                // No services have actually been discovered yet, so this method
+                // can often be left blank. Code for peer discovery goes in the
+                // onReceive method, detailed below.
+                Log.d(TAG, "SUCCESS")
+                setListView()
+            }
+
+            override fun onFailure(reasonCode: Int) {
+                // Code for when the discovery initiation fails goes here.
+                // Alert the user that something went wrong.
+                Log.d(TAG, "FAILURE")
+            }
+        })
+    }
+    fun refreshDeviceList (view: View) {
+        peers.clear()
+        var device1 = WifiP2pDevice()
+        device1.status = 2
+        device1.deviceName = "Test Device 1"
+        peers.add(device1)
+        var device2 = WifiP2pDevice()
+        device2.status = 4
+        device2.deviceName = "Test Device 2"
+        peers.add(device2)
+        setListView()
     }
 
+    fun setListView () {
+        val arrayAdapter: ArrayAdapter<*>
+        var device1 = WifiP2pDevice()
+        device1.status = 2
+        device1.deviceName = "Test Device 1"
+        var currentList: MutableList<WifiP2pDevice> = mutableListOf(device1, WifiP2pDevice())
+        if (peers.isNotEmpty()){
+        currentList = peers
+        }
+        listView = findViewById<ListView>(R.id.listView)
+        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, currentList)
+        listView.adapter = arrayAdapter;
+    }
 
     /*fun registerService(port: Int) {
         // Create the NsdServiceInfo object, and populate it.

@@ -23,8 +23,9 @@ class AppBroadcastReceiver : android.content.BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(activity.TAG, "HERE")
+        Log.d(activity.TAG, intent.toString())
         Log.d(activity.TAG, (intent.action == WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION).toString())
-        Log.d(activity.TAG, WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
+        Log.d(activity.TAG, intent.action.toString())
         when(intent.action) {
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> ({
                 Log.d(activity.TAG, "STATE")
@@ -53,7 +54,7 @@ class AppBroadcastReceiver : android.content.BroadcastReceiver() {
                     //                                          int[] grantResults)
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
-                    Log.d(activity.TAG, "Insufficient permissions")
+                    Log.d(activity.TAG, "PEER: Insufficient permissions")
                 }
                 else {
                     // The peer list has changed! We should probably do something about

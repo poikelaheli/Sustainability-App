@@ -9,6 +9,7 @@
     <uses-permission
         android:required="true"
         android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
         tools:targetApi="33" />
     <uses-permission
         android:required="true"
