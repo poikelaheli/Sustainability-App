@@ -12,4 +12,5 @@
     <string name="password">Password</string>
     <string name="return_button">Return</string>
     <string name="refresh_device_list">Refresh Device List</string>
+    <string name="own_device">Own Device</string>
 </resources>

@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity() {
                 val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
+                fragmentTransaction.add(R.id.contentFragmentContainer, DevicesFragment())
                 fragmentTransaction.commit()
                 initiatePeerDiscovery(manager)
             }
@@ -228,7 +229,6 @@ class MainActivity : AppCompatActivity() {
                 // can often be left blank. Code for peer discovery goes in the
                 // onReceive method, detailed below.
                 Log.d(TAG, "SUCCESS")
-                setListView()
             }
 
             override fun onFailure(reasonCode: Int) {
@@ -252,6 +252,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setListView () {
+        Log.d(TAG, "SET LIST VIEW")
+        Log.d(TAG, peers.toString())
         val arrayAdapter: ArrayAdapter<*>
         var device1 = WifiP2pDevice()
         device1.status = 2

@@ -36,13 +36,10 @@ class AppBroadcastReceiver : android.content.BroadcastReceiver() {
                 activity.isWifiP2pEnabled = state == WifiP2pManager.WIFI_P2P_STATE_ENABLED
             })
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> (@androidx.annotation.RequiresPermission(
-                allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.NEARBY_WIFI_DEVICES]
+                allOf = [android.Manifest.permission.NEARBY_WIFI_DEVICES]
             ) {
                 Log.d(activity.TAG, "PEER")
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                if ( ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.NEARBY_WIFI_DEVICES
                     ) != PackageManager.PERMISSION_GRANTED
@@ -76,6 +73,8 @@ class AppBroadcastReceiver : android.content.BroadcastReceiver() {
             })
             WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
                 Log.d(activity.TAG, "DEVICE")
+                Log.d(activity.TAG, activity.supportFragmentManager.fragments.toString())
+                Log.d(activity.TAG, activity.supportFragmentManager.findFragmentById(R.id.contentFragmentContainer).toString())
                 (activity.supportFragmentManager.findFragmentById(R.id.contentFragmentContainer) as DevicesFragment)
                     .apply {
                         updateThisDevice(
