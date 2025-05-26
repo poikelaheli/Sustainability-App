@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var manager: WifiP2pManager
     lateinit var receiver: AppBroadcastReceiver
     lateinit var peerListListener: WifiP2pManager.PeerListListener
+    val fragmentManager = supportFragmentManager
     var actionListener = object : WifiP2pManager.ActionListener {
 
         override fun onSuccess() {
@@ -101,7 +102,6 @@ class MainActivity : AppCompatActivity() {
                 updateLayoutVisibility("returnButton")
             }
             R.id.loginFormButton -> {
-                val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
                 fragmentTransaction.add(R.id.contentFragmentContainer, DevicesFragment())
@@ -109,14 +109,13 @@ class MainActivity : AppCompatActivity() {
                 initiatePeerDiscovery(manager)
             }
             R.id.regFormButton -> {
-                val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
+                fragmentTransaction.add(R.id.contentFragmentContainer, DevicesFragment())
                 fragmentTransaction.commit()
                 initiatePeerDiscovery(manager)
             }
             R.id.logoutButton -> {
-                val fragmentManager = supportFragmentManager
                 val fragmentTransaction = fragmentManager.beginTransaction()
                 fragmentTransaction.replace(R.id.fragmentContainer, LoginRegistrationFragment())
                 fragmentTransaction.commit()
@@ -239,32 +238,8 @@ class MainActivity : AppCompatActivity() {
         })
     }
     fun refreshDeviceList (view: View) {
-        peers.clear()
-        var device1 = WifiP2pDevice()
-        device1.status = 2
-        device1.deviceName = "Test Device 1"
-        peers.add(device1)
-        var device2 = WifiP2pDevice()
-        device2.status = 4
-        device2.deviceName = "Test Device 2"
-        peers.add(device2)
-        setListView()
-    }
-
-    fun setListView () {
-        Log.d(TAG, "SET LIST VIEW")
-        Log.d(TAG, peers.toString())
-        val arrayAdapter: ArrayAdapter<*>
-        var device1 = WifiP2pDevice()
-        device1.status = 2
-        device1.deviceName = "Test Device 1"
-        var currentList: MutableList<WifiP2pDevice> = mutableListOf(device1, WifiP2pDevice())
-        if (peers.isNotEmpty()){
-        currentList = peers
-        }
-        listView = findViewById<ListView>(R.id.listView)
-        arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, currentList)
-        listView.adapter = arrayAdapter;
+        var fragment = this.fragmentManager.findFragmentById(R.id.contentFragmentContainer) as DevicesFragment
+        fragment.refreshDeviceList()
     }
 
     /*fun registerService(port: Int) {
