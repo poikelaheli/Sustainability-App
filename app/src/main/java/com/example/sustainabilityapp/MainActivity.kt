@@ -125,13 +125,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             R.id.regFormButton -> {
-                this.findViewById<View>(R.id.loginButton).visibility = View.GONE
-                this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
-                this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
-                val fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
-                fragmentTransaction.commit()
-                initiatePeerDiscovery(manager)
+                if (createNewUser()) {
+                    this.findViewById<View>(R.id.loginButton).visibility = View.GONE
+                    this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
+                    this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
+                    val fragmentTransaction = fragmentManager.beginTransaction()
+                    fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
+                    fragmentTransaction.commit()
+                    initiatePeerDiscovery(manager)
+                }
+
             }
             R.id.loginButton -> {
                 val fragmentTransaction = fragmentManager.beginTransaction()
@@ -152,19 +155,43 @@ class MainActivity : AppCompatActivity() {
     fun validateLoginUser(): Boolean {
         val username: EditText = this.findViewById<EditText>(R.id.loginName)
         val password: EditText = this.findViewById<EditText>(R.id.loginPassword)
-        val cursor = dbService.getUser(username.text.toString())
-        cursor.use {
-            if (cursor.moveToFirst()) {
-                do {
-                    val dbUsername = cursor.getString(cursor.getColumnIndexOrThrow(DBService.USERNAME_COL))
-                    val dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(DBService.PASSWORD_COL))
-                    if (username.text.toString() == dbUsername && password.text.toString() == dbPassword) {
-                        return true
-                    }
-                } while (cursor.moveToNext())
+        try {
+            val cursor = dbService.getUser(username.text.toString())
+            cursor.use {
+                if (cursor.moveToFirst()) {
+                    do {
+                        val dbUsername = cursor.getString(cursor.getColumnIndexOrThrow(DBService.USERNAME_COL))
+                        val dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(DBService.PASSWORD_COL))
+                        Log.d(TAG, dbUsername)
+                        Log.d(TAG, dbPassword)
+                        if (username.text.toString() == dbUsername && password.text.toString() == dbPassword) {
+                            return true
+                        }
+                    } while (cursor.moveToNext())
+                }
+                return false
             }
+        }
+        catch (e: Exception) {
+            Log.d(TAG, "Logging in failed")
             return false
         }
+    }
+
+    fun createNewUser(): Boolean {
+        val username: EditText = this.findViewById<EditText>(R.id.regName)
+        val password1: EditText = this.findViewById<EditText>(R.id.regPassword1)
+        val password2: EditText = this.findViewById<EditText>(R.id.regPassword2)
+        Log.d(TAG, password1.text.toString())
+        Log.d(TAG, password2.text.toString())
+        if (password2.text.toString() != password1.text.toString()) {
+            // TODO: Throw an error
+            return false
+        }
+        Log.d(TAG, username.text.toString())
+        Log.d(TAG, username.toString())
+        dbService.addUser(username.text.toString(), password1.text.toString())
+        return true
     }
 
     fun updateLayoutVisibility (buttonName: String) {
