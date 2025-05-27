@@ -18,6 +18,7 @@ import android.os.Build
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.annotation.RequiresApi
@@ -34,8 +35,14 @@ import java.net.InetAddress
 
 class MainActivity : AppCompatActivity() {
     private lateinit var listView : ListView
+    private var loggedIn = false
+
+    var homeFragment = HomeFragment()
+    var loginRegistrationFragment = LoginRegistrationFragment()
+    var deviceFragment = DevicesFragment()
 
     lateinit var binding: ActivityMainBinding
+    lateinit var dbService: DBService
     private val intentFilter = IntentFilter()
     lateinit var channel: WifiP2pManager.Channel
     lateinit var manager: WifiP2pManager
@@ -70,6 +77,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         getDeviceList(true, 1000)
+        dbService = DBService(this, null)
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
+        fragmentTransaction.commit()
         //registerService(port)
         //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     }
@@ -102,24 +113,57 @@ class MainActivity : AppCompatActivity() {
                 updateLayoutVisibility("returnButton")
             }
             R.id.loginFormButton -> {
-                val fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
-                fragmentTransaction.add(R.id.contentFragmentContainer, DevicesFragment())
-                fragmentTransaction.commit()
-                initiatePeerDiscovery(manager)
+                if (validateLoginUser()) {
+
+                    this.findViewById<View>(R.id.loginButton).visibility = View.GONE
+                    this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
+                    this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
+                    val fragmentTransaction = fragmentManager.beginTransaction()
+                    fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
+                    fragmentTransaction.commit()
+                    initiatePeerDiscovery(manager)
+                }
             }
             R.id.regFormButton -> {
+                this.findViewById<View>(R.id.loginButton).visibility = View.GONE
+                this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
+                this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
                 val fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.fragmentContainer, HomeFragment())
-                fragmentTransaction.add(R.id.contentFragmentContainer, DevicesFragment())
+                fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
                 fragmentTransaction.commit()
                 initiatePeerDiscovery(manager)
             }
-            R.id.logoutButton -> {
+            R.id.loginButton -> {
                 val fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.fragmentContainer, LoginRegistrationFragment())
+                fragmentTransaction.remove(deviceFragment)
+                fragmentTransaction.add(R.id.contentFragmentContainer, loginRegistrationFragment)
                 fragmentTransaction.commit()
+                loggedIn = !loggedIn
             }
+            R.id.logoutButton -> {
+                loggedIn = !loggedIn
+                v.visibility = View.GONE
+                this.findViewById<View>(R.id.loginButton).visibility = View.VISIBLE
+                this.findViewById<View>(R.id.profileButton).visibility = View.GONE
+            }
+        }
+    }
+
+    fun validateLoginUser(): Boolean {
+        val username: EditText = this.findViewById<EditText>(R.id.loginName)
+        val password: EditText = this.findViewById<EditText>(R.id.loginPassword)
+        val cursor = dbService.getUser(username.text.toString())
+        cursor.use {
+            if (cursor.moveToFirst()) {
+                do {
+                    val dbUsername = cursor.getString(cursor.getColumnIndexOrThrow(DBService.USERNAME_COL))
+                    val dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(DBService.PASSWORD_COL))
+                    if (username.text.toString() == dbUsername && password.text.toString() == dbPassword) {
+                        return true
+                    }
+                } while (cursor.moveToNext())
+            }
+            return false
         }
     }
 
