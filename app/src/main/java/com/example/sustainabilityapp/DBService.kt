@@ -35,16 +35,6 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         Log.d(TAG, db.toString())
         currrentdb = db
         isCreating = true
-        createUserTable(db)
-        createNetworkDatabase(db)
-        createDeviceTable(db)
-
-        // NOTE: Add dummy data for testing purposes
-        addDummyData()
-        isCreating = false
-    }
-
-    private fun createUserTable(db: SQLiteDatabase) {
         val createUserTable = """
             CREATE TABLE $USER_TABLE (
                 $USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,9 +43,6 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
             )
         """.trimIndent()
         db.execSQL(createUserTable)
-    }
-
-    private fun createNetworkDatabase (db: SQLiteDatabase) {
         val createNetworkTable = """
             CREATE TABLE $NETWORK_TABLE (
                 $NETWORK_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,9 +50,6 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
             )
         """.trimIndent()
         db.execSQL(createNetworkTable)
-    }
-
-    private fun createDeviceTable (db: SQLiteDatabase) {
         val createDeviceTable = """
             CREATE TABLE $DEVICE_TABLE (
                 $DEVICE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,6 +60,8 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
             )
         """.trimIndent()
         db.execSQL(createDeviceTable)
+
+        isCreating = false
     }
 
     override fun onUpgrade(
@@ -107,11 +93,6 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
     }
 
     fun addNetwork (name: String) {
-        if (!checkTable(NETWORK_TABLE)) {
-            writableDatabase.use {db ->
-                createNetworkDatabase(db!!)
-            }
-        }
         val values = ContentValues().apply {
             put(NETWORK_NAME, name)
         }
@@ -136,8 +117,9 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
             put(DEVICE_STATUS, status)
             put(DEVICE_NETWORK, networkId)
         }
+        Log.d(TAG, values.toString())
         writableDatabase.use { db ->
-            db!!.insert(DEVICE_NETWORK, null, values)
+            db!!.insert(DEVICE_TABLE, null, values)
         }
     }
 
@@ -160,6 +142,7 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
                 network["id"] = cursor.getString(cursor.getColumnIndexOrThrow(NETWORK_ID))
             }
         }
+        Log.d(TAG, network.toString())
         addDevice("Test Network Device 1", 2, network["id"]?.toInt())
         addDevice("Test Network Device 2", 3, network["id"]?.toInt())
     }
@@ -177,18 +160,5 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         context.deleteDatabase(DATABASE_NAME)
     }
 
-    override fun getReadableDatabase(): SQLiteDatabase? {
-        if (isCreating && currrentdb != null) {
-            return currrentdb
-        }
-        return super.getReadableDatabase()
-    }
-
-    override fun getWritableDatabase(): SQLiteDatabase? {
-        if (isCreating && currrentdb != null) {
-            return currrentdb
-        }
-        return super.getWritableDatabase()
-    }
 
 }

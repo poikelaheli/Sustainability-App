@@ -84,7 +84,6 @@ class NetworksFragment : Fragment(R.layout.networks){
                             } while (cursor.moveToNext())
                         }
                     }
-                    cursor?.close()
                     return v
                 }
                 catch (e: Exception) {

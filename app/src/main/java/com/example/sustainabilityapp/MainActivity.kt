@@ -72,7 +72,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         getDeviceList(true, 1000)
         dbService = DBService(this, null)
-        dbService.writableDatabase
+        // ! Run if necessary, for testing
+        //dbService.addDummyData()
         intializeFragments()
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
