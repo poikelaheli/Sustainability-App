@@ -68,12 +68,14 @@
                     android:text="@string/devices_button" />
 
                 <Button
-                    android:id="@+id/settingsButton"
+                    android:id="@+id/networksButton"
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/settings_button" />
+                    android:text="@string/networks_button"
+                    android:onClick="handleNetworksView"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/logoutButton"

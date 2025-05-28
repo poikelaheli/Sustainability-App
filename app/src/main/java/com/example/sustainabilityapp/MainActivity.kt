@@ -1,23 +1,17 @@
 package com.example.sustainabilityapp
 
 import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.ContentValues.TAG
 import android.content.Context
-import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.nsd.NsdManager
-import android.net.nsd.NsdServiceInfo
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.net.wifi.WifiManager
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Build
 import android.util.Log
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
@@ -31,15 +25,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import com.example.sustainabilityapp.databinding.ActivityMainBinding
 import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
-import java.net.InetAddress
 
 class MainActivity : AppCompatActivity() {
     private lateinit var listView : ListView
     private var loggedIn = false
 
-    var homeFragment = HomeFragment()
-    var loginRegistrationFragment = LoginRegistrationFragment()
-    var deviceFragment = DevicesFragment()
+    lateinit var homeFragment: HomeFragment
+    lateinit var loginRegistrationFragment: LoginRegistrationFragment
+    lateinit var deviceFragment: DevicesFragment
+    lateinit var networksFragment: NetworksFragment
 
     lateinit var binding: ActivityMainBinding
     lateinit var dbService: DBService
@@ -78,11 +72,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         getDeviceList(true, 1000)
         dbService = DBService(this, null)
+        dbService.writableDatabase
+        intializeFragments()
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
         fragmentTransaction.commit()
         //registerService(port)
         //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+    }
+
+    fun intializeFragments () {
+        homeFragment = HomeFragment()
+        deviceFragment = DevicesFragment()
+        loginRegistrationFragment = LoginRegistrationFragment()
+        networksFragment = NetworksFragment()
     }
 
     /** register the BroadcastReceiver with the intent values to be matched  */
@@ -118,6 +121,7 @@ class MainActivity : AppCompatActivity() {
                     this.findViewById<View>(R.id.loginButton).visibility = View.GONE
                     this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
                     this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
+                    this.findViewById<View>(R.id.networksButton).visibility = View.VISIBLE
                     val fragmentTransaction = fragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
                     fragmentTransaction.commit()
@@ -129,6 +133,7 @@ class MainActivity : AppCompatActivity() {
                     this.findViewById<View>(R.id.loginButton).visibility = View.GONE
                     this.findViewById<View>(R.id.logoutButton).visibility = View.VISIBLE
                     this.findViewById<View>(R.id.profileButton).visibility = View.VISIBLE
+                    this.findViewById<View>(R.id.networksButton).visibility = View.VISIBLE
                     val fragmentTransaction = fragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
                     fragmentTransaction.commit()
@@ -148,6 +153,7 @@ class MainActivity : AppCompatActivity() {
                 v.visibility = View.GONE
                 this.findViewById<View>(R.id.loginButton).visibility = View.VISIBLE
                 this.findViewById<View>(R.id.profileButton).visibility = View.GONE
+                this.findViewById<View>(R.id.networksButton).visibility = View.GONE
             }
         }
     }
@@ -311,6 +317,27 @@ class MainActivity : AppCompatActivity() {
     fun refreshDeviceList (view: View) {
         var fragment = this.fragmentManager.findFragmentById(R.id.contentFragmentContainer) as DevicesFragment
         fragment.refreshDeviceList()
+    }
+
+    fun handleNetworksView(view: View) {
+        var networks = ArrayList<Map<String,String>>()
+        var cursor = dbService.getAllNetworks()
+        cursor.use {
+            if (cursor.moveToFirst()) {
+                do{
+                    val networkName = cursor.getString(cursor.getColumnIndexOrThrow(DBService.NETWORK_NAME))
+                    val networkId = cursor.getString(cursor.getColumnIndexOrThrow(DBService.NETWORK_ID))
+                    var map = mapOf<String, String>("name" to networkName, "id" to networkId)
+                    networks.add(map)
+                } while (cursor.moveToNext())
+            }
+        }
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.contentFragmentContainer, networksFragment)
+        fragmentTransaction.commit()
+        if (networks.isNotEmpty()) {
+            networksFragment.updateNetworksList(networks)
+        }
     }
 
     /*fun registerService(port: Int) {
