@@ -34,7 +34,6 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d(TAG, "OnViewCreate")
         contentView = inflater.inflate(R.layout.devices, null)
         return contentView
     }
@@ -83,7 +82,6 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
          * Overriding standard getView method to manage shown data and the format
          */
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            Log.d(TAG, "GET VIEW")
             var v = convertView
             if (v == null) {
                 val vi = requireActivity().getSystemService(
@@ -99,7 +97,6 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
                 }
                 if (bottom != null) {
                     bottom.text = getDeviceStatus(device.status)
-                    Log.d(TAG, "WiFiPeerListAdapter getView")
                 }
             }
             return v!!
@@ -112,7 +109,6 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
     fun updateThisDevice(device: WifiP2pDevice) {
         Log.d(TAG, "DEVICE FRAGMENT")
         Log.d(TAG, device.toString())
-        Log.d(TAG, device.status.toString())
         this.device = device
 
         val nameView = contentView!!.findViewById<View>(R.id.ownDeviceName) as TextView

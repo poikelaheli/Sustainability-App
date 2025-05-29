@@ -1,8 +1,6 @@
 package com.example.sustainabilityapp
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.net.wifi.p2p.WifiP2pDevice
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -26,14 +24,32 @@ class NetworksFragment : Fragment(R.layout.networks){
     @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        listAdapter = NetworksListAdapter(requireActivity(), R.layout.network_list_item, networks)
+        Log.d(TAG, "OnActivatyCreate")
+        listAdapter = NetworksListAdapter(getActivity() as MainActivity, R.layout.network_list_item, networks)
         var listview = contentView?.findViewById<ListView>(R.id.networksListView)
         listview?.adapter = listAdapter
+        Log.d(TAG, listview.toString())
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, getActivity().toString())
+        Log.d(TAG, contentView.toString())
+        listAdapter = NetworksListAdapter(requireActivity() as MainActivity, R.layout.network_list_item, networks)
+        var listview = contentView?.findViewById<ListView>(R.id.networksListView)
+        listview?.adapter = listAdapter
+        Log.d(TAG, listview.toString())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "OnViewCreate")
         contentView = inflater.inflate(R.layout.networks, null)
+        Log.d(TAG, getActivity().toString())
+        Log.d(TAG, contentView.toString())
+        listAdapter = NetworksListAdapter(requireActivity() as MainActivity, R.layout.network_list_item, networks)
+        var listview = contentView?.findViewById<ListView>(R.id.networksListView)
+        listview?.adapter = listAdapter
+        Log.d(TAG, listview.toString())
         return contentView
     }
 
@@ -43,6 +59,14 @@ class NetworksFragment : Fragment(R.layout.networks){
 
     fun updateNetworksList(newList: ArrayList<Map<String, String>>) {
         networks = newList
+        if (listAdapter == null) {
+            Log.d(TAG, getActivity().toString())
+            Log.d(TAG, contentView.toString())
+            listAdapter = NetworksListAdapter(requireActivity() as MainActivity, R.layout.network_list_item, networks)
+            var listview = contentView?.findViewById<ListView>(R.id.networksListView)
+            listview?.adapter = listAdapter
+            Log.d(TAG, listview.toString())
+        }
         (listAdapter as NetworksListAdapter).notifyDataSetChanged()
     }
     /**

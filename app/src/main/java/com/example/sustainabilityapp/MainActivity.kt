@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.commit
 import com.example.sustainabilityapp.databinding.ActivityMainBinding
 import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
 
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var listView : ListView
     private var loggedIn = false
     private var curretView = DEVICES
+    private var networkFragmentAdded = false
 
     lateinit var homeFragment: HomeFragment
     lateinit var loginRegistrationFragment: LoginRegistrationFragment
@@ -86,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         intializeFragments()
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
+        fragmentTransaction.replace(R.id.networkFragmentContainer, networksFragment)
         fragmentTransaction.commit()
         initiatePeerDiscovery(manager)
         //registerService(port)
@@ -97,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         deviceFragment = DevicesFragment()
         loginRegistrationFragment = LoginRegistrationFragment()
         networksFragment = NetworksFragment()
+        networksFragment.defineDBHelper(dbService)
     }
 
     /** register the BroadcastReceiver with the intent values to be matched  */
@@ -156,8 +160,7 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.loginButton -> {
                 val fragmentTransaction = fragmentManager.beginTransaction()
-                fragmentTransaction.remove(deviceFragment)
-                fragmentTransaction.add(R.id.contentFragmentContainer, loginRegistrationFragment)
+                fragmentTransaction.replace(R.id.contentFragmentContainer, loginRegistrationFragment)
                 fragmentTransaction.commit()
                 curretView = LOGIN
             }
@@ -337,6 +340,7 @@ class MainActivity : AppCompatActivity() {
         if (curretView == NETWORKS) {
             return
         }
+        Log.d(TAG, networksFragment.toString())
         var networks = ArrayList<Map<String,String>>()
         var cursor = dbService.getAllNetworks()
         cursor.use {
@@ -349,9 +353,11 @@ class MainActivity : AppCompatActivity() {
                 } while (cursor.moveToNext())
             }
         }
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.contentFragmentContainer, networksFragment)
-        fragmentTransaction.commit()
+
+        (this.findViewById<View>(R.id.networkFragmentContainer) as View).visibility = View.VISIBLE
+        (this.findViewById<View>(R.id.contentFragmentContainer) as View).visibility = View.GONE
+        /*val context = this as AppCompatActivity
+        context.replaceFragment(networksFragment)*/
         if (networks.isNotEmpty()) {
             networksFragment.updateNetworksList(networks)
         }

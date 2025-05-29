@@ -35,6 +35,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/contentFragmentContainer"/>
+            <androidx.fragment.app.FragmentContainerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/networkFragmentContainer"
+                android:visibility="gone"/>
         </RelativeLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView

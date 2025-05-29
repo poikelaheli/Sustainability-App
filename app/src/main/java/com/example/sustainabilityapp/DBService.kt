@@ -129,13 +129,9 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
     }
 
     fun addDummyData () {
-        Log.d(TAG, "Network")
         addNetwork("TestNetwork")
-        Log.d(TAG, "Network done")
         val cursor = getNetworkByName("TestNetwork")
-        Log.d(TAG, "cursor")
         val network = mutableMapOf("name" to "", "id" to "")
-        Log.d(TAG, "list")
         cursor.use {
             if (cursor.moveToFirst()) {
                 network["name"] = cursor.getString(cursor.getColumnIndexOrThrow(NETWORK_NAME))
