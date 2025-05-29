@@ -27,8 +27,15 @@ import com.example.sustainabilityapp.databinding.ActivityMainBinding
 import com.example.sustainabilityapp.ui.theme.SustainabilityAppTheme
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val DEVICES = "devices"
+        private const val LOGIN = "login"
+        private const val NETWORKS = "networks"
+    }
+
     private lateinit var listView : ListView
     private var loggedIn = false
+    private var curretView = DEVICES
 
     lateinit var homeFragment: HomeFragment
     lateinit var loginRegistrationFragment: LoginRegistrationFragment
@@ -66,6 +73,8 @@ class MainActivity : AppCompatActivity() {
 
     private val peers = mutableListOf<WifiP2pDevice>()
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -78,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
         fragmentTransaction.commit()
+        initiatePeerDiscovery(manager)
         //registerService(port)
         //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     }
@@ -126,7 +136,8 @@ class MainActivity : AppCompatActivity() {
                     val fragmentTransaction = fragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
                     fragmentTransaction.commit()
-                    initiatePeerDiscovery(manager)
+                    loggedIn = !loggedIn
+                    handleDevicesView(v)
                 }
             }
             R.id.regFormButton -> {
@@ -138,7 +149,8 @@ class MainActivity : AppCompatActivity() {
                     val fragmentTransaction = fragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
                     fragmentTransaction.commit()
-                    initiatePeerDiscovery(manager)
+                    loggedIn = !loggedIn
+                    handleDevicesView(v)
                 }
 
             }
@@ -147,7 +159,7 @@ class MainActivity : AppCompatActivity() {
                 fragmentTransaction.remove(deviceFragment)
                 fragmentTransaction.add(R.id.contentFragmentContainer, loginRegistrationFragment)
                 fragmentTransaction.commit()
-                loggedIn = !loggedIn
+                curretView = LOGIN
             }
             R.id.logoutButton -> {
                 loggedIn = !loggedIn
@@ -155,6 +167,7 @@ class MainActivity : AppCompatActivity() {
                 this.findViewById<View>(R.id.loginButton).visibility = View.VISIBLE
                 this.findViewById<View>(R.id.profileButton).visibility = View.GONE
                 this.findViewById<View>(R.id.networksButton).visibility = View.GONE
+                handleDevicesView(v)
             }
         }
     }
@@ -321,6 +334,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun handleNetworksView(view: View) {
+        if (curretView == NETWORKS) {
+            return
+        }
         var networks = ArrayList<Map<String,String>>()
         var cursor = dbService.getAllNetworks()
         cursor.use {
@@ -339,6 +355,17 @@ class MainActivity : AppCompatActivity() {
         if (networks.isNotEmpty()) {
             networksFragment.updateNetworksList(networks)
         }
+        curretView = NETWORKS
+    }
+
+    fun handleDevicesView(view: View) {
+        if (curretView == DEVICES) {
+            return
+        }
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
+        fragmentTransaction.commit()
+        curretView = DEVICES
     }
 
     /*fun registerService(port: Int) {
