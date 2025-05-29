@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sustainability App</string>
+    <string name="logout_button">Logout</string>
+    <string name="devices_button">Devices</string>
+    <string name="profile_button">Profile</string>
+    <string name="login_button">Login</string>
+    <string name="registration_button">Register</string>
+    <string name="name">Name</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="return_button">Return</string>
+    <string name="refresh_device_list">Refresh Device List</string>
+    <string name="own_device">Own Device</string>
+    <string name="networks_button">Networks</string>
+    <string name="devices">Devices</string>
+</resources>
