@@ -12,15 +12,25 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 
+/**
+ * Fragment controller class for Network Fragment
+ */
 class NetworksFragment : Fragment(R.layout.networks){
     companion object {
         private const val TAG = "sustAppNetworkList"
     }
+
+    /**
+     * Private global variables
+     */
     private var networks = ArrayList<Map<String, String>>()
     private var contentView: View? = null
     private var listAdapter: NetworksListAdapter? = null
     private var dbService: DBService? = null
 
+    /**
+     * Custom onActivityCreated. Initialises listAdapter
+     */
     @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -31,16 +41,9 @@ class NetworksFragment : Fragment(R.layout.networks){
         Log.d(TAG, listview.toString())
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, getActivity().toString())
-        Log.d(TAG, contentView.toString())
-        listAdapter = NetworksListAdapter(requireActivity() as MainActivity, R.layout.network_list_item, networks)
-        var listview = contentView?.findViewById<ListView>(R.id.networksListView)
-        listview?.adapter = listAdapter
-        Log.d(TAG, listview.toString())
-    }
-
+    /**
+     * Custom onCreateView. Sets contentView
+     */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(TAG, "OnViewCreate")
         contentView = inflater.inflate(R.layout.networks, null)
@@ -53,10 +56,17 @@ class NetworksFragment : Fragment(R.layout.networks){
         return contentView
     }
 
+    /**
+     * Helper class to device database
+     */
     fun defineDBHelper (db: DBService) {
         dbService = db
     }
 
+    /**
+     * Update shown network list
+     * @param newList - list of networks
+     */
     fun updateNetworksList(newList: ArrayList<Map<String, String>>) {
         this.networks.clear()
         networks.addAll(newList)
@@ -71,6 +81,7 @@ class NetworksFragment : Fragment(R.layout.networks){
         }
         (listAdapter as NetworksListAdapter).notifyDataSetChanged()
     }
+
     /**
      * Custom ArrayAdapter for list view
      */
@@ -78,7 +89,7 @@ class NetworksFragment : Fragment(R.layout.networks){
         (context: Context, textViewResourceId: Int,
          private val items: List<Map<String, String>>) : ArrayAdapter<Map<String, String>>(context, textViewResourceId, items) {
         /**
-         * Overriding standard getView method to manage shown data and the format
+         * Custom getView
          */
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             Log.d(TAG, "GET VIEW")

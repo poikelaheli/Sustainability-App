@@ -10,55 +10,49 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.IntentCompat
 
+/**
+ * Custom BroadcastReceiver
+ */
 class AppBroadcastReceiver : android.content.BroadcastReceiver() {
+    /**
+     * Global variables
+     */
     lateinit var activity : MainActivity
     lateinit var manager: WifiP2pManager
     lateinit var channel: WifiP2pManager.Channel
 
+    /**
+     * Set global variables
+     * @param newActivity - MainActivity instance
+     * @param newManager - WifiP2pManager instance
+     * @param newChannel - WifiP2pManager Channel instance
+     */
     fun setVariables (newActivity: MainActivity, newManager: WifiP2pManager, newChannel: WifiP2pManager.Channel) {
         activity = newActivity
         manager = newManager
         channel = newChannel
     }
 
+    /**
+     * Override standard onReceive method to customise handing
+     */
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(activity.TAG, "HERE")
-        Log.d(activity.TAG, intent.toString())
-        Log.d(activity.TAG, (intent.action == WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION).toString())
-        Log.d(activity.TAG, intent.action.toString())
         when(intent.action) {
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> ({
-                Log.d(activity.TAG, "STATE")
-                // Determine if Wi-Fi Direct mode is enabled or not, alert
-                // the Activity.
                 val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-                Log.d(activity.TAG, state.toString())
                 activity.isWifiP2pEnabled = state == WifiP2pManager.WIFI_P2P_STATE_ENABLED
             })
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> (@androidx.annotation.RequiresPermission(
                 allOf = [android.Manifest.permission.NEARBY_WIFI_DEVICES]
             ) {
-                Log.d(activity.TAG, "PEER")
                 if ( ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.NEARBY_WIFI_DEVICES
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
                     Log.d(activity.TAG, "PEER: Insufficient permissions")
                 }
                 else {
-                    // The peer list has changed! We should probably do something about
-                    // that.
-                    // Request available peers from the wifi p2p manager. This is an
-                    // asynchronous call and the calling activity is notified with a
-                    // callback on PeerListListener.onPeersAvailable()
                     manager.requestPeers(channel, activity.peerListListener)
                     Log.d(activity.TAG, "P2P peers changed")
                 }
@@ -66,10 +60,6 @@ class AppBroadcastReceiver : android.content.BroadcastReceiver() {
             })
             WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> ({
                 Log.d(activity.TAG, "CONNECTION")
-
-                // Connection state changed! We should probably do something about
-                // that.
-
             })
             WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
                 Log.d(activity.TAG, "DEVICE")

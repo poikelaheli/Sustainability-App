@@ -14,17 +14,26 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 
+/**
+ * Fragment controller class for Device Fragment
+ */
 class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
     companion object {
         private const val TAG = "sustAppDeviceList"
     }
 
+    /**
+     * Private global variables
+     */
     private var peers = ArrayList<WifiP2pDevice>()
     private var contentView: View? = null
     private var listAdapter: WiFiPeerListAdapter? = null
     var device: WifiP2pDevice? = null
         private set
 
+    /**
+     * Custom onActivityCreated. Initialises listAdapter
+     */
     @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -33,6 +42,9 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
         listview?.adapter = listAdapter
     }
 
+    /**
+     * Custom onCreateView. Sets contentView
+     */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = inflater.inflate(R.layout.devices, null)
         return contentView
@@ -79,7 +91,7 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
         (context: Context, textViewResourceId: Int,
         private val items: List<WifiP2pDevice>) : ArrayAdapter<WifiP2pDevice>(context, textViewResourceId, items) {
         /**
-         * Overriding standard getView method to manage shown data and the format
+         * Custom getView
          */
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             var v = convertView
@@ -105,6 +117,7 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
 
     /**
      * Updates own device status or name
+     * @param device - own device
      */
     fun updateThisDevice(device: WifiP2pDevice) {
         Log.d(TAG, "DEVICE FRAGMENT")
@@ -119,7 +132,7 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
     }
 
     /**
-     * Sets up the device list (Dummy data)
+     * Helper function for setting up the device list (Dummy data)
      */
     fun setUpDummyContent () {
         peers.clear()
@@ -137,7 +150,7 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
     }
 
     /**
-     * Refreshes the devices list (Dummy data)
+     * Helper function for refreshing the devices list (Dummy data)
      */
     fun refreshDeviceList () {
         peers.clear()

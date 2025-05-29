@@ -34,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         private const val NETWORKS = "networks"
     }
 
+    /**
+     * Private and public variables
+     */
     private lateinit var listView : ListView
     private var loggedIn = false
     private var curretView = DEVICES
@@ -55,17 +58,11 @@ class MainActivity : AppCompatActivity() {
     var actionListener = object : WifiP2pManager.ActionListener {
 
         override fun onSuccess() {
-            // Code for when the discovery initiation is successful goes here.
-            // No services have actually been discovered yet, so this method
-            // can often be left blank. Code for peer discovery goes in the
-            // onReceive method, detailed below.
             Log.d(TAG, "$channel")
             Log.d(TAG, "$peerListListener")
         }
 
         override fun onFailure(reasonCode: Int) {
-            // Code for when the discovery initiation fails goes here.
-            // Alert the user that something went wrong.
             Log.d(TAG, "Discovery failure, code: $reasonCode")
         }
     }
@@ -75,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
     private val peers = mutableListOf<WifiP2pDevice>()
 
+    /**
+     * Custom onCreate to initialize necessary variables and start processes
+     */
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,19 +83,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         getDeviceList(true, 1000)
         dbService = DBService(this, null)
-        // ! Run if necessary, for testing
-        //dbService.addDummyData()
-        intializeFragments()
+        initializeFragments()
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
         fragmentTransaction.replace(R.id.networkFragmentContainer, networksFragment)
         fragmentTransaction.commit()
         initiatePeerDiscovery(manager)
-        //registerService(port)
-        //nsdManager.discoverServices(mServiceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     }
 
-    fun intializeFragments () {
+    /**
+     * Initialize all needed fragments
+     */
+    fun initializeFragments () {
         homeFragment = HomeFragment()
         deviceFragment = DevicesFragment()
         loginRegistrationFragment = LoginRegistrationFragment()
@@ -103,7 +102,9 @@ class MainActivity : AppCompatActivity() {
         networksFragment.defineDBHelper(dbService)
     }
 
-    /** register the BroadcastReceiver with the intent values to be matched  */
+    /**
+     * Custom onResume. Initialize and register BroadcastReceiver
+     */
     public override fun onResume() {
         super.onResume()
         receiver = AppBroadcastReceiver()
@@ -112,11 +113,17 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(receiver, intentFilter)
     }
 
+    /**
+     * Custom onPause. Pauses custom receiver
+     */
     public override fun onPause() {
         super.onPause()
         unregisterReceiver(receiver)
     }
 
+    /**
+     * Custom onClick to handle majority of navigation button actions
+     */
     @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun onClick(v: View?) {
@@ -179,6 +186,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Validate Login credentials
+     * @return Boolean
+     */
     fun validateLoginUser(): Boolean {
         val username: EditText = this.findViewById<EditText>(R.id.loginName)
         val password: EditText = this.findViewById<EditText>(R.id.loginPassword)
@@ -207,6 +218,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Validate user input and create new user to database
+     * @return Boolean
+     */
     fun createNewUser(): Boolean {
         val username: EditText = this.findViewById<EditText>(R.id.regName)
         val password1: EditText = this.findViewById<EditText>(R.id.regPassword1)
@@ -223,6 +238,10 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    /**
+     * Update layout visibility on loginRegistrationLayout based on pressed button
+     * @param buttonName - selected button name
+     */
     fun updateLayoutVisibility (buttonName: String) {
         val loginButtons: LinearLayout = this.findViewById<LinearLayout>(R.id.loginButtons)
         val loginForm: LinearLayout = this.findViewById<LinearLayout>(R.id.loginForm)
@@ -249,6 +268,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    /**
+     * Set up intentFilter, peer to peer manager and peerListListener
+     */
     fun getDeviceList(onlyReachable: Boolean, reachableTimeout: Int) {
         // Indicates a change in the Wi-Fi Direct status.
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
@@ -289,6 +312,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Initialising WIFI peer device discovery
+     */
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @RequiresPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
     fun initiatePeerDiscovery (manager: WifiP2pManager) {
@@ -300,13 +326,6 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.NEARBY_WIFI_DEVICES
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             Log.d(TAG, "Insufficient permissions")
             Log.d(TAG, ActivityCompat.checkSelfPermission(
                 this,
@@ -318,6 +337,7 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.NEARBY_WIFI_DEVICES
             ).toString()
             )
+            // Bypassing permissions for prototype purposes
             //return
         }
         manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
@@ -337,11 +357,18 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+    /**
+     * OnClick event handler for refreshing device list on Device fragment
+     */
     fun refreshDeviceList (view: View) {
         var fragment = this.fragmentManager.findFragmentById(R.id.contentFragmentContainer) as DevicesFragment
         fragment.refreshDeviceList()
     }
 
+    /**
+     * OnClick event handler for opening Networks view
+     */
     fun handleNetworksView(view: View) {
         if (curretView == NETWORKS) {
             return
@@ -362,14 +389,15 @@ class MainActivity : AppCompatActivity() {
 
         (this.findViewById<View>(R.id.networkFragmentContainer) as View).visibility = View.VISIBLE
         (this.findViewById<View>(R.id.contentFragmentContainer) as View).visibility = View.GONE
-        /*val context = this as AppCompatActivity
-        context.replaceFragment(networksFragment)*/
         if (networks.isNotEmpty()) {
             networksFragment.updateNetworksList(networks)
         }
         curretView = NETWORKS
     }
 
+    /**
+     * OnClick event handler for opening Device view
+     */
     fun handleDevicesView(view: View) {
         if (curretView == DEVICES) {
             return
@@ -383,121 +411,5 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.commit()
         curretView = DEVICES
 
-    }
-
-    /*fun registerService(port: Int) {
-        // Create the NsdServiceInfo object, and populate it.
-        val serviceInfo = NsdServiceInfo().apply {
-            // The name is subject to change based on conflicts
-            // with other services advertised on the same network.
-            serviceName = "NsdChat"
-            serviceType = mServiceType
-            setPort(port)
-        }
-        nsdManager = (getSystemService(Context.NSD_SERVICE) as NsdManager).apply {
-            registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener)
-        }
-    }
-
-
-    private val registrationListener = object : NsdManager.RegistrationListener {
-
-        override fun onServiceRegistered(NsdServiceInfo: NsdServiceInfo) {
-            // Save the service name. Android may have changed it in order to
-            // resolve a conflict, so update the name you initially requested
-            // with the name Android actually used.
-            mServiceName = NsdServiceInfo.serviceName
-        }
-
-        override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Registration failed! Put debugging code here to determine why.
-        }
-
-        override fun onServiceUnregistered(arg0: NsdServiceInfo) {
-            // Service has been unregistered. This only happens when you call
-            // NsdManager.unregisterService() and pass in this listener.
-        }
-
-        override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Unregistration failed. Put debugging code here to determine why.
-        }
-    }
-    // Instantiate a new DiscoveryListener
-    private val discoveryListener = object : NsdManager.DiscoveryListener {
-
-        // Called as soon as service discovery begins.
-        override fun onDiscoveryStarted(regType: String) {
-            Log.d(TAG, "Service discovery started")
-        }
-
-        override fun onServiceFound(service: NsdServiceInfo) {
-            // A service was found! Do something with it.
-            Log.d(TAG, "Service discovery success$service")
-            when {
-                service.serviceType != mServiceType -> // Service type is the string containing the protocol and
-                    // transport layer for this service.
-                    Log.d(TAG, "Unknown Service Type: ${service.serviceType}")
-                service.serviceName == mServiceName -> // The name of the service tells the user what they'd be
-                    // connecting to. It could be "Bob's Chat App".
-                    Log.d(TAG, "Same machine: $mServiceName")
-                service.serviceName.contains("NsdChat") -> nsdManager.resolveService(service, resolveListener)
-            }
-        }
-
-        override fun onServiceLost(service: NsdServiceInfo) {
-            // When the network service is no longer available.
-            // Internal bookkeeping code goes here.
-            Log.e(TAG, "service lost: $service")
-        }
-
-        override fun onDiscoveryStopped(serviceType: String) {
-            Log.i(TAG, "Discovery stopped: $serviceType")
-        }
-
-        override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
-            nsdManager.stopServiceDiscovery(this)
-        }
-
-        override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
-            nsdManager.stopServiceDiscovery(this)
-        }
-    }
-    private val resolveListener = object : NsdManager.ResolveListener {
-
-        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Called when the resolve fails. Use the error code to debug.
-            Log.e(TAG, "Resolve failed: $errorCode")
-        }
-
-        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            Log.e(TAG, "Resolve Succeeded. $serviceInfo")
-
-            if (serviceInfo.serviceName == mServiceName) {
-                Log.d(TAG, "Same IP.")
-                return
-            }
-            mService = serviceInfo
-            val port: Int = serviceInfo.port
-            val host: InetAddress = serviceInfo.host
-        }
-    }*/
-}
-
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SustainabilityAppTheme {
-        Greeting("Android")
     }
 }

@@ -7,7 +7,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
+/**
+ * Database service class for handing database actions
+ */
 class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION){
+    /**
+     * List of available table names
+     */
     private var tableNames = listOf<String>(USER_TABLE, DEVICE_TABLE, NETWORK_TABLE)
     companion object {
         private const val DATABASE_NAME = "SustainabilityApp"
@@ -28,9 +34,15 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         const val TAG = "sustAppDB"
     }
 
+    /**
+     * Private helper variables
+     */
     private var currrentdb: SQLiteDatabase? = null
     private var isCreating = false
 
+    /**
+     * Customized onCreate method to create needed tables
+     */
     override fun onCreate(db: SQLiteDatabase) {
         Log.d(TAG, db.toString())
         currrentdb = db
@@ -64,6 +76,9 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         isCreating = false
     }
 
+    /**
+     * Customised onUpgrade method
+     */
     override fun onUpgrade(
         db: SQLiteDatabase,
         oldVersion: Int,
@@ -73,10 +88,19 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         onCreate(db)
     }
 
+    /**
+     * Drop all tables in specified database
+     * @param db - Current database
+     */
     fun dropAll(db: SQLiteDatabase?) {
         tableNames.forEach { name ->  db?.execSQL("DROP TABLE IF EXISTS $name")}
     }
 
+    /**
+     * Add user to database
+     * @param username
+     * @param password
+     */
     fun addUser (username: String, password: String) {
         val values = ContentValues().apply {
             put(USERNAME_COL, username)
@@ -87,11 +111,21 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
             db!!.insert(USER_TABLE, null, values)
         }
     }
+
+    /**
+     * Get user by username
+     * @param username
+     * @return Cursor
+     */
     fun getUser (username: String): Cursor {
         var query = "SELECT * FROM $USER_TABLE WHERE $USERNAME_COL = \"$username\""
         return readableDatabase!!.rawQuery(query, null)
     }
 
+    /**
+     * Add new network
+     * @param name - Network name
+     */
     fun addNetwork (name: String) {
         val values = ContentValues().apply {
             put(NETWORK_NAME, name)
@@ -101,16 +135,31 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         }
     }
 
+    /**
+     * Get network by name
+     * @param name - Network name
+     * @return Cursor
+     */
     fun getNetworkByName (name: String): Cursor {
         var query = "SELECT * FROM $NETWORK_TABLE WHERE $NETWORK_NAME = \"$name\""
         return readableDatabase!!.rawQuery(query, null)
     }
 
+    /**
+     * Get all saved networks
+     * @return Cursor
+     */
     fun getAllNetworks (): Cursor {
         var query = "SELECT * FROM $NETWORK_TABLE"
         return readableDatabase!!.rawQuery(query, null)
     }
 
+    /**
+     * Add new device
+     * @param name - Device name
+     * @param status - Device status code
+     * @param networkId - Id of the network the device is connected
+     */
     fun addDevice (name: String, status: Int, networkId: Int?) {
         val values = ContentValues().apply {
             put(DEVICE_NAME, name)
@@ -123,11 +172,19 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         }
     }
 
+    /**
+     * Get device by network id
+     * @param network - current network id
+     * @return Cursor
+     */
     fun getDevicesByNetwork (network: Int): Cursor {
         var query = "SELECT * FROM $DEVICE_TABLE WHERE $DEVICE_NETWORK = \"$network\""
         return readableDatabase!!.rawQuery(query, null)
     }
 
+    /**
+     * Helper function adding dummy data to the databse. Only run when necessary
+     */
     fun addDummyData () {
         addNetwork("TestNetwork")
         val cursor = getNetworkByName("TestNetwork")
@@ -143,6 +200,11 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         addDevice("Test Network Device 2", 3, network["id"]?.toInt())
     }
 
+    /**
+     * Helper method for checking if table exist in database
+     * @param tableName - Data table name
+     * @return Boolean
+     */
     fun checkTable (tableName: String) : Boolean {
         var exists = false
         var cursor = readableDatabase!!.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = \"$tableName\"", null)
@@ -152,6 +214,9 @@ class DBService (context: Context, factory: SQLiteDatabase.CursorFactory?) : SQL
         return  exists
     }
 
+    /**
+     * Helper method for deleting database. Only run when necessary
+     */
     fun deleteAll (context: Context) {
         context.deleteDatabase(DATABASE_NAME)
     }
