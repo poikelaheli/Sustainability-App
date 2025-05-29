@@ -58,7 +58,9 @@ class NetworksFragment : Fragment(R.layout.networks){
     }
 
     fun updateNetworksList(newList: ArrayList<Map<String, String>>) {
-        networks = newList
+        this.networks.clear()
+        networks.addAll(newList)
+        Log.d(TAG, networks.toString())
         if (listAdapter == null) {
             Log.d(TAG, getActivity().toString())
             Log.d(TAG, contentView.toString())
@@ -103,7 +105,8 @@ class NetworksFragment : Fragment(R.layout.networks){
                                 Log.d(TAG, deviceStatus)
                                 var line = vi.inflate (R.layout.device_list_item, null)
                                 (line.findViewById<View>(R.id.deviceName) as TextView).text = deviceName
-                                (line.findViewById<View>(R.id.deviceDetails) as TextView).text = deviceStatus
+                                (line.findViewById<View>(R.id.deviceDetails) as TextView).text =
+                                    DevicesFragment().getDeviceStatus(deviceStatus.toInt())
                                 list.addView(line)
                             } while (cursor.moveToNext())
                         }

@@ -42,7 +42,7 @@ class DevicesFragment : Fragment(R.layout.devices), PeerListListener {
      * Traslates device status codes
      * @param deviceStatus : integer status code
      */
-    private fun getDeviceStatus(deviceStatus: Int): String {
+    fun getDeviceStatus(deviceStatus: Int): String {
         Log.d(TAG, "Peer status :$deviceStatus")
         return when (deviceStatus) {
             WifiP2pDevice.AVAILABLE -> "Available"

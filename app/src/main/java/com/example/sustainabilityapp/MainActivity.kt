@@ -170,6 +170,10 @@ class MainActivity : AppCompatActivity() {
                 this.findViewById<View>(R.id.loginButton).visibility = View.VISIBLE
                 this.findViewById<View>(R.id.profileButton).visibility = View.GONE
                 this.findViewById<View>(R.id.networksButton).visibility = View.GONE
+                if (curretView == NETWORKS) {
+                    (this.findViewById<View>(R.id.networkFragmentContainer) as View).visibility = View.GONE
+                    (this.findViewById<View>(R.id.contentFragmentContainer) as View).visibility = View.VISIBLE
+                }
                 handleDevicesView(v)
             }
         }
@@ -188,6 +192,8 @@ class MainActivity : AppCompatActivity() {
                         Log.d(TAG, dbUsername)
                         Log.d(TAG, dbPassword)
                         if (username.text.toString() == dbUsername && password.text.toString() == dbPassword) {
+                            username.text.clear()
+                            password.text.clear()
                             return true
                         }
                     } while (cursor.moveToNext())
@@ -368,10 +374,15 @@ class MainActivity : AppCompatActivity() {
         if (curretView == DEVICES) {
             return
         }
+        if (curretView == NETWORKS) {
+            (this.findViewById<View>(R.id.networkFragmentContainer) as View).visibility = View.GONE
+            (this.findViewById<View>(R.id.contentFragmentContainer) as View).visibility = View.VISIBLE
+        }
         val fragmentTransaction = fragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.contentFragmentContainer, deviceFragment)
         fragmentTransaction.commit()
         curretView = DEVICES
+
     }
 
     /*fun registerService(port: Int) {
